@@ -11,6 +11,11 @@ def create_tables():
     db.create_all()  # Ensure tables are created
 
 @app.route('/')
+def home():
+    top_items = StockItem.query.order_by(StockItem.quantity.desc()).limit(5).all()  # Get top 5 items
+    return render_template('home.html', top_items=top_items)
+
+@app.route('/stock')
 def index():
     page = request.args.get('page', 1, type=int)
     items_per_page = 10
