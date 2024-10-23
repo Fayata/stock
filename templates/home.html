@@ -21,12 +21,6 @@
             <h1>Welcome to Stock Management</h1>
             <p class="text-center">Manage your stock items efficiently!</p>
         </div>
-
-        <div class="text-center mb-4">
-            <a href="{{ url_for('add_item') }}" class="btn btn-primary">Add New Item</a>
-            <a href="{{ url_for('index') }}" class="btn btn-secondary">View Stock Items</a>
-        </div>
-
         <h2>Top Stock Items</h2>
         <ul class="list-group">
             {% for item in top_items %}
