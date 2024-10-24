@@ -25,13 +25,49 @@ def index():
 @app.route('/add', methods=['GET', 'POST'])
 def add_item():
     if request.method == 'POST':
+        item_code = request.form['item_code']
         name = request.form['name']
         quantity = request.form['quantity']
-        new_item = StockItem(name=name, quantity=quantity)
+        unit_price = request.form['unit_price']
+        
+        # Check if item code already exists
+        existing_item = StockItem.query.filter_by(item_code=item_code).first()
+        if existing_item:
+            flash('Item code already exists!', 'error')
+            return render_template('add_item.html')
+        
+        new_item = StockItem(
+            item_code=item_code,
+            name=name,
+            quantity=quantity,
+            unit_price=unit_price
+        )
         db.session.add(new_item)
         db.session.commit()
         return redirect(url_for('index'))
     return render_template('add_item.html')
+
+@app.route('/update/<int:item_id>', methods=['GET', 'POST'])
+def update_item(item_id):
+    item = StockItem.query.get_or_404(item_id)
+    
+    if request.method == 'POST':
+        # Check if new item code already exists and it's not the current item
+        if request.form['item_code'] != item.item_code:
+            existing_item = StockItem.query.filter_by(item_code=request.form['item_code']).first()
+            if existing_item:
+                flash('Item code already exists!', 'error')
+                return render_template('update_item.html', item=item)
+        
+        item.item_code = request.form['item_code']
+        item.name = request.form['name']
+        item.quantity = request.form['quantity']
+        item.unit_price = request.form['unit_price']
+        
+        db.session.commit()
+        return redirect(url_for('index'))
+    
+    return render_template('update_item.html', item=item)
 
 @app.route('/delete/<int:item_id>', methods=['POST'])
 def delete_item(item_id):
