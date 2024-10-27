@@ -1,82 +1,81 @@
-from flask import Flask, render_template, redirect, url_for, request
-from models import db, StockItem
+from flask import Flask, render_template, redirect, url_for, request, flash
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from models import db, Stock, User
+from forms import StockForm, LoginForm, RegistrationForm
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///stock.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = 'your_secret_key'
 db.init_app(app)
 
-@app.before_request
-def create_tables():
-    db.create_all()  # Ensure tables are created
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 @app.route('/')
 def home():
-    top_items = StockItem.query.order_by(StockItem.quantity.desc()).limit(5).all()  # Get top 5 items
-    return render_template('home.html', top_items=top_items)
+    highest_sales_category = Stock.query.order_by(Stock.quantity.desc()).first()
+    return render_template('home.html', category=highest_sales_category)
 
-@app.route('/stock')
-def index():
+@app.route('/stock', methods=['GET', 'POST'])
+def stock():
+    form = StockForm()
+    if form.validate_on_submit():
+        new_stock = Stock(item_name=form.item_name.data, quantity=form.quantity.data,
+                          price=form.price.data, category=form.category.data)
+        db.session.add(new_stock)
+        db.session.commit()
+        return redirect(url_for('stock'))
+@app.route('/stock', methods=['GET', 'POST'])
+def stock():
+    form = StockForm()
+    if form.validate_on_submit():
+        new_stock = Stock(item_name=form.item_name.data, quantity=form.quantity.data,
+                          price=form.price.data, category_id=form.category.data)
+        db .session.add(new_stock)
+        db.session.commit()
+        return redirect(url_for('stock'))
+    
     page = request.args.get('page', 1, type=int)
-    items_per_page = 10
-    items = StockItem.query.paginate(page=page, per_page=items_per_page, error_out=False)
-    return render_template('stock.html', items=items)
+    search_term = request.args.get('search')
+    if search_term:
+        stocks = Stock.query.filter(Stock.item_name.like(f'%{search_term}%')).paginate(page, per_page=8)
+    else:
+        stocks = Stock.query.paginate(page, per_page=8)
+    return render_template('stock.html', stocks=stocks, form=form)
 
-@app.route('/add', methods=['GET', 'POST'])
-def add_item():
-    if request.method == 'POST':
-        item_code = request.form['item_code']
-        name = request.form['name']
-        quantity = request.form['quantity']
-        unit_price = request.form['unit_price']
-        
-        # Check if item code already exists
-        existing_item = StockItem.query.filter_by(item_code=item_code).first()
-        if existing_item:
-            flash('Item code already exists!', 'error')
-            return render_template('add_item.html')
-        
-        new_item = StockItem(
-            item_code=item_code,
-            name=name,
-            quantity=quantity,
-            unit_price=unit_price
-        )
-        db.session.add(new_item)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user and user.check_password(form.password.data):
+            login_user(user)
+            return redirect(url_for('home'))
+        flash('Invalid username or password')
+    return render_template('login.html', form=form)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        new_user = User(username=form.username.data)
+        new_user.set_password(form.password.data)
+        db.session.add(new_user)
         db.session.commit()
-        return redirect(url_for('index'))
-    return render_template('add_item.html')
+        return redirect(url_for('login'))
+    return render_template('register.html', form=form)
 
-@app.route('/update/<int:item_id>', methods=['GET', 'POST'])
-def update_item(item_id):
-    item = StockItem.query.get_or_404(item_id)
-    
-    if request.method == 'POST':
-        # Check if new item code already exists and it's not the current item
-        if request.form['item_code'] != item.item_code:
-            existing_item = StockItem.query.filter_by(item_code=request.form['item_code']).first()
-            if existing_item:
-                flash('Item code already exists!', 'error')
-                return render_template('update_item.html', item=item)
-        
-        item.item_code = request.form['item_code']
-        item.name = request.form['name']
-        item.quantity = request.form['quantity']
-        item.unit_price = request.form['unit_price']
-        
-        db.session.commit()
-        return redirect(url_for('index'))
-    
-    return render_template('update_item.html', item=item)
-
-@app.route('/delete/<int:item_id>', methods=['POST'])
-def delete_item(item_id):
-    item_to_delete = StockItem.query.get_or_404(item_id)
-    db.session.delete(item_to_delete)
-    db.session.commit()
-    return redirect(url_for('index'))
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()  # Ensure tables are created
     app.run(debug=True)

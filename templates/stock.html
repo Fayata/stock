@@ -1,61 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Items</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <div class="sidebar">
-        <div class="logo">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
-        </div>
-        <ul>
-            <li><a href="{{ url_for('home') }}">Home</a></li>
-            <li><a href="{{ url_for('index') }}">Stock Items</a></li>
-        </ul>
-    </div>
-    <div class="main-content">
-        <div class="header">
-            <h1>Stock Items</h1>
-            <a href="{{ url_for('add_item') }}" class="btn btn-primary">Add New Item</a>
-        </div>
-        <ul class="list-group">
-            {% for item in items.items %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    {{ item.name }} - Quantity: {{ item.quantity }}
-                    <form action="{{ url_for('delete_item', item_id=item.id) }}" method="post" style="display:inline;">
-                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                    </form>
-                </li>
-            {% endfor %}
-        </ul>
+{% extends 'base.html' %}
 
-        <!-- Pagination Controls -->
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center mt-4">
-                {% if items.has_prev %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('index', page=items.prev_num) }}" aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-                {% endif %}
-                {% for num in range(1, items.pages + 1) %}
-                    <li class="page-item {% if num == items.page %}active{% endif %}">
-                        <a class="page-link" href="{{ url_for('index', page=num) }}">{{ num }}</a>
-                    </li>
-                {% endfor %}
-                {% if items.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('index', page=items.next_num) }}" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                {% endif %}
-            </ul>
-        </nav>
-    </div>
-</body>
-</html>
+{% block content %}
+<div class="jumbotron">
+    <h1>Stock Management</h1>
+    <form method="GET">
+        <input type="text" name="search" placeholder="Search...">
+        <button type="submit">Search</button>
+    </form>
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        {{ form.item_name.label }} {{ form.item_name() }}<br>
+        {{ form.quantity.label }} {{ form.quantity() }}<br>
+        {{ form.price.label }} {{ form.price() }}<br>
+        {{ form.category.label }} {{ form.category() }}<br>
+        {{ form.submit() }}
+    </form>
+
+    <h2>Stock Items</h2>
+    <ul>
+        {% for stock in stocks.items %}
+            <li>{{ stock.item_name }} ({{ stock.quantity }}) - {{ stock.price }} - {{ stock.category.name }}</li>
+        {% endfor %}
+    </ul>
+
+    {% if stocks.has_next %}
+        <a href="{{ url_for('stock', page=stocks.next_num) }}">Next Page</a>
+    {% endif %}
+</div>
+{% endblock %}

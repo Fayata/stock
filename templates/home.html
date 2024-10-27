@@ -1,34 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - Stock Management</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <div class="sidebar">
-        <div class="logo">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
-        </div>
-        <ul>
-            <li><a href="{{ url_for('home') }}">Home</a></li>
-            <li><a href="{{ url_for('index') }}">Stock Items</a></li>
-        </ul>
-    </div>
-    <div class="main-content">
-        <div class="header">
-            <h1>Welcome to Stock Management</h1>
-            <p class="text-center">Manage your stock items efficiently!</p>
-        </div>
-        <h2>Top Stock Items</h2>
-        <ul class="list-group">
-            {% for item in top_items %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    {{ item.name }} - Quantity: {{ item.quantity }}
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1>Home</h1>
+    {% if category %}
+        <p>Highest Sales Category: {{ category.category }} with {{ category.quantity }} items</p>
+    {% else %}
+        <p>No sales data available.</p>
+    {% endif %}
+</div>
+{% endblock %}
