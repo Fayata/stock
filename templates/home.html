@@ -2,11 +2,12 @@
 
 {% block content %}
 <div class="jumbotron">
-    <h1>Home</h1>
-    {% if category %}
-        <p>Highest Sales Category: {{ category.category }} with {{ category.quantity }} items</p>
+    <h1 class="display-4">Welcome to Stock Management System</h1>
+    <p class="lead">Manage your inventory efficiently and effectively.</p>
+    {% if current_user.is_authenticated %}
+        <a class="btn btn-primary btn-lg" href="{{ url_for('stock_management') }}" role="button">Manage Stock</a>
     {% else %}
-        <p>No sales data available.</p>
+        <a class="btn btn-primary btn-lg" href="{{ url_for('login') }}" role="button">Login to Start</a>
     {% endif %}
 </div>
 {% endblock %}

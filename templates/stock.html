@@ -1,31 +1,75 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="jumbotron">
-    <h1>Stock Management</h1>
-    <form method="GET">
-        <input type="text" name="search" placeholder="Search...">
-        <button type="submit">Search</button>
-    </form>
-
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        {{ form.item_name.label }} {{ form.item_name() }}<br>
-        {{ form.quantity.label }} {{ form.quantity() }}<br>
-        {{ form.price.label }} {{ form.price() }}<br>
-        {{ form.category.label }} {{ form.category() }}<br>
-        {{ form.submit() }}
-    </form>
-
-    <h2>Stock Items</h2>
-    <ul>
-        {% for stock in stocks.items %}
-            <li>{{ stock.item_name }} ({{ stock.quantity }}) - {{ stock.price }} - {{ stock.category.name }}</li>
-        {% endfor %}
-    </ul>
-
-    {% if stocks.has_next %}
-        <a href="{{ url_for('stock', page=stocks.next_num) }}">Next Page</a>
-    {% endif %}
+<div class="row">
+    <div class="col-md-4">
+        <h2>Add New Stock</h2>
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                {{ form.item_name.label(class="form-label") }}
+                {{ form.item_name(class="form-control") }}
+            </div>
+            <div class="mb-3">
+                {{ form.quantity.label(class="form-label") }}
+                {{ form.quantity(class="form-control") }}
+            </div>
+            <div class="mb-3">
+                {{ form.price.label(class="form-label") }}
+                {{ form.price(class="form-control") }}
+            </div>
+            <div class="mb-3">
+                {{ form.category.label(class="form-label") }}
+                {{ form.category(class="form-control") }}
+            </div>
+            {{ form.submit(class="btn btn-primary") }}
+        </form>
+    </div>
+    
+    <div class="col-md-8">
+        <h2>Stock List</h2>
+        <form class="mb-3" method="GET">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Search items...">
+                <button class="btn btn-outline-secondary" type="submit">Search</button>
+            </div>
+        </form>
+        
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Item Name</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Category</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stock in stocks.items %}
+                <tr>
+                    <td>{{ stock.item_name }}</td>
+                    <td>{{ stock.quantity }}</td>
+                    <td>${{ "%.2f"|format(stock.price) }}</td>
+                    <td>{{ stock.category }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- Pagination -->
+        <nav>
+            <ul class="pagination">
+                {% for page_num in stocks.iter_pages() %}
+                    {% if page_num %}
+                        <li class="page-item {% if page_num == stocks.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('stock_management', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </nav>
+    </div>
 </div>
 {% endblock %}

@@ -1,6 +1,13 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, FloatField, SubmitField, PasswordField
+from wtforms import StringField, IntegerField, FloatField, SubmitField, PasswordField, SelectField
 from wtforms.validators import DataRequired, Length, EqualTo
+
+class StockForm(FlaskForm):
+    item_name = StringField('Item Name', validators=[DataRequired()])
+    quantity = IntegerField('Quantity', validators=[DataRequired()])
+    price = FloatField('Price', validators=[DataRequired()])
+    category = StringField('Category', validators=[DataRequired()])
+    submit = SubmitField('Add Stock')
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
