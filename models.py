@@ -36,3 +36,4 @@ class Stock(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('stock_category.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    

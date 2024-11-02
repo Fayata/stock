@@ -20,3 +20,4 @@ class StockForm(FlaskForm):
     price = FloatField('Price', validators=[DataRequired(), NumberRange(min=0)])
     category = SelectField('Category', coerce=int, validators=[ DataRequired()])
     submit = SubmitField('Add Stock')
+    
